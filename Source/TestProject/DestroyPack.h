@@ -37,39 +37,48 @@ private:
 	float DmgAmount = 0.1f;
 	float DisplaySectionAmount = 0.5f;
 	float temp = 0;
+	int triangleInd = 0;
 
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, FVector NormalImpulse, const FHitResult & Hit);
 
-	UPROPERTY(VisibleAnywhere)
-	UProceduralMeshComponent * mesh;
-
-	int triangleInd = 0;
+	UPROPERTY(Replicated)
+	UProceduralMeshComponent * Mesh;
 
 	//Mesh properties
-	int POINTS = 100;
-	float width = 80.0f;
-	float height = 150.0f;
+	int Points = 100;
+	float Width = 80.0f;
+	float Height = 150.0f;
 
 	//Mesh components
-	TArray<FVector> vertices;
+	TArray<FVector> Vertices;
 	TArray<int> Triangles;
-	TArray<FVector> normals;
+	TArray<FVector> Normals;
 	TArray<FVector2D> UV0;
-	TArray<FProcMeshTangent> tangents;
-	TArray<FLinearColor> vertexColors;
+	TArray<FProcMeshTangent> Tangents;
+	TArray<FLinearColor> VertexColors;
 
+	//Called after actor is placed in the scene
 	void PostActorCreated();
-	void PostLoad();
-	void CreateQuad();
-	void DestroyQuadSection();
 
+	//Called after loading the game
+	void PostLoad();
+
+	//Creates the quad from triangles using Delaunay Triangulation
+	void CreateQuad();
+
+	UFUNCTION(Server, Reliable, WithValidation)
+	void Server_DestroyQuadSections();
+	//Destroys some random sections of quad, when player hits it
+	void DestroyQuadSections();
+
+	//Returns the triangle indices needed for mesh creation
 	std::vector<int> CalculateTriangleIndices(std::vector<DelaBella_Triangle> triangles, std::vector<DelaBella_Vertex> &triangleVertices);
 
-	bool IsVertexDefined(std::vector<DelaBella_Vertex> triangleVertices,
-		DelaBella_Vertex v,
-		std::vector<int>indices, int &oldIndex);
+	//Checks if the vertex v is in the triangleVertices vector, returns also vertex's index
+	bool IsVertexDefined(std::vector<DelaBella_Vertex> triangleVertices, DelaBella_Vertex v, std::vector<int>indices, int &oldIndex);
 
+	//Adds one triangle section to mesh
 	void CreateTriangle(int i);
 
 };

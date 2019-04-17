@@ -198,3 +198,4 @@ void ATestProjectCharacter::MoveRight(float Value)
 		AddMovementInput(Direction, Value);
 	}
 }
+

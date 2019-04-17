@@ -2,28 +2,39 @@
 
 #include "Lamp.h"
 #include "Components/StaticMeshComponent.h"
-#include "Components/SphereComponent.h"
 #include "Components/SpotLightComponent.h"
 #include "CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "CoreUObject/Public/UObject/Class.h"
-
+#include "Engine/Public/DrawDebugHelpers.h "
+#include "UnrealNetwork.h"
 
 // Sets default values
 ALamp::ALamp()
 {
 	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
 	PrimaryActorTick.bCanEverTick = true;
+	bReplicates = true;
 	CollisionMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("Collision Mesh"));
+	SwitchMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("Switch Mesh"));
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CeilingLampAsset(TEXT("/Game/StarterContent/Props/SM_Lamp_Ceiling.SM_Lamp_Ceiling")); 
 	if (CeilingLampAsset.Succeeded())
 	{
-		UE_LOG(LogTemp, Warning, TEXT("Found CelingLampAsset"));
 		CollisionMesh->SetStaticMesh(CeilingLampAsset.Object);
-		CollisionMesh->SetRelativeRotation(FRotator(180.0f, 0.0f, 0.0f));
+		//CollisionMesh->SetRelativeRotation(FRotator(180.0f, 0.0f, 0.0f));
 	}
+	static ConstructorHelpers::FObjectFinder<UStaticMesh> SwitchAsset(TEXT("/Game/StarterContent/Architecture/SM_AssetPlatform.SM_AssetPlatform"));
+	if (SwitchAsset.Succeeded()) {
+		
+		SwitchMesh->SetStaticMesh(SwitchAsset.Object);
+		SwitchMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+	}
+
+
 	RootComponent = CollisionMesh;
 	CollisionMesh->SetNotifyRigidBodyCollision(true);
+
+	
 
 	SpotLight = CreateDefaultSubobject<USpotLightComponent>(FName("SpotLight"));
 	SpotLight->SetupAttachment(RootComponent);
@@ -39,36 +50,32 @@ void ALamp::BeginPlay()
 	R = Min + 1; //FMath::FRandRange(0, 255);
 	G = Min + 1; //FMath::FRandRange(0, 255);
 	B = Min + 1; //FMath::FRandRange(0, 255);
+
+	SwitchMesh->SetupAttachment(RootComponent);
+	SwitchMesh->SetRelativeLocation(SwitchLocation);
+	SwitchMesh->SetNotifyRigidBodyCollision(true);
+	SwitchMesh->OnComponentHit.AddDynamic(this, &ALamp::OnHit);
 }
 
 // Called every frame
 void ALamp::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-
-
-	//UE_LOG(LogTemp, Warning, TEXT("R = %lu G = %lu B = %lu"), R, G, B)
-
-	//if player switches light
-	//ToggleLight(IsTurnedOn);
-
-	//if player changes color of light
-	//ChangeColor(lightColor);
-
 		
 	ChangeRGB(StartingColor, R, G, B);
 	FColor Color = FColor(R, G, B, 255);
 	ChangeColor(Color);
 }
 
-void ALamp::ToggleLight(bool On)
+void ALamp::ToggleLight()
 {
-	if (On) {
-		SpotLight->SetActive(true);
-	}
-	else {
-		SpotLight->SetActive(false);
-	}
+	SpotLight->ToggleActive();
+}
+
+void ALamp::OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, FVector NormalImpulse, const FHitResult & Hit)
+{
+	UE_LOG(LogTemp, Warning, TEXT("light toggle"))
+	ToggleLight();
 }
 
 void ALamp::ChangeRGB(ColorEnum &Colors, uint8 &R, uint8 &G, uint8 &B)

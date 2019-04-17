@@ -21,7 +21,6 @@ enum class ColorEnum : uint8
 //forward declarations
 class UStaticMeshComponent;
 class USpotLightComponent;
-class USphereComponent;
 
 UCLASS()
 class TESTPROJECT_API ALamp : public AActor
@@ -42,21 +41,25 @@ public:
 
 	/** Toggles the light component's visibility*/
 	UFUNCTION()
-	void ToggleLight(bool On);
+	void ToggleLight();
 
 	/** Changes the light color*/
 	UFUNCTION()
 	void ChangeColor(FColor color);
 
 private:
+	UPROPERTY(EditAnywhere, Meta = (MakeEditWidget = true))
+	FVector SwitchLocation = GetActorLocation()+FVector(0,0,50.0f);
+
+	UPROPERTY(EditDefaultsOnly, Category = "Components")
+	class UStaticMeshComponent * SwitchMesh = nullptr;
+
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	class UStaticMeshComponent * CollisionMesh = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
 	class USpotLightComponent * SpotLight = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Components")
-	class USphereComponent * CollisionComponent = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Light properties")
 	ColorEnum StartingColor = ColorEnum::White;
@@ -69,6 +72,9 @@ private:
 	uint8 Max = 250; //max r, g, b value
 	uint8 Min = 100; //min r, g, b value
 	bool IsAdding = true; //used in ChangeRGB function
+
+	UFUNCTION()
+	void OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, FVector NormalImpulse, const FHitResult & Hit);
 
 	//** Changes r, g, b values of light color */
 	void ChangeRGB(ColorEnum &Colors, uint8 &R, uint8 &G, uint8 &B);

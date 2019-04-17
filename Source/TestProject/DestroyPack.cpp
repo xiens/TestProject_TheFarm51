@@ -11,41 +11,21 @@
 ADestroyPack::ADestroyPack()
 {
  	// Set this actor to call Tick() every frame.  You can turn this off to improve performance if you don't need it.
-	//PrimaryActorTick.bCanEverTick = true;
-	//CollisionMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("Collision Mesh"));
-
-	//static ConstructorHelpers::FObjectFinder<UStaticMesh> GlassWindowAsset(TEXT("/Game/StarterContent/Props/SM_GlassWindow.SM_GlassWindow"));
-
-	//if (GlassWindowAsset.Succeeded())
-	//{
-	//	CollisionMesh->SetStaticMesh(GlassWindowAsset.Object);
-	//	//CollisionMesh->SetRelativeRotation(FRotator(180.0f, 0.0f, 0.0f));
-	//}
-	//RootComponent = CollisionMesh;
-	//CollisionMesh->SetNotifyRigidBodyCollision(true);
+	PrimaryActorTick.bCanEverTick = false;
 
 	mesh = CreateDefaultSubobject<UProceduralMeshComponent>(TEXT("GeneratedMesh"));
-	RootComponent = mesh;
-	//mesh->SetupAttachment(RootComponent);
-
+	mesh->SetRelativeRotation(FRotator(0.0f, 0.0f, 90.0f));
 	mesh->bUseAsyncCooking = true;
-	
-	
+	mesh->SetNotifyRigidBodyCollision(true);
+
+	RootComponent = mesh;
 }
 
 // Called when the game starts or when spawned
 void ADestroyPack::BeginPlay()
 {
 	Super::BeginPlay();
-	//CollisionMesh->OnComponentHit.AddDynamic(this, &ADestroyPack::OnHit);
-	
-}
-
-// Called every frame
-void ADestroyPack::Tick(float DeltaTime)
-{
-	Super::Tick(DeltaTime);
-
+	mesh->OnComponentHit.AddDynamic(this, &ADestroyPack::OnHit);
 }
 
 void ADestroyPack::PostActorCreated()
@@ -58,6 +38,7 @@ void ADestroyPack::PostActorCreated()
 void ADestroyPack::PostLoad()
 {
 	Super::PostLoad();
+	//CreateQuad();
 }
 
 float ADestroyPack::TakeDamage(float DamageAmount, FDamageEvent const & DamageEvent, AController * EventInstigator, AActor * DamageCauser)
@@ -78,17 +59,34 @@ float ADestroyPack::TakeDamage(float DamageAmount, FDamageEvent const & DamageEv
 	return DamageToApply;
 }
 
-void ADestroyPack::DestroyQuad()
+void ADestroyPack::DestroyQuadSection()
 {
-	UE_LOG(LogTemp, Warning, TEXT("destroying"))
-		mesh->ClearMeshSection(0);
-	int i = 0;
-	CreateTriangle(vertices, Triangles, normals, UV0, tangents, vertexColors, i);
+	CurrentHealth -= DmgAmount;
+	UE_LOG(LogTemp, Warning, TEXT("Current Health = %f"), CurrentHealth)
+
+	temp += DmgAmount;
+	int32 i = FMath::RandRange(1, POINTS - 1);
+	/*int32 i=0;
+	do {
+		i = FMath::RandRange(1, POINTS - 1);
+	} while (mesh->IsMeshSectionVisible(i) == false);*/
+
+	if (temp >= DisplaySectionAmount) {
+		temp = 0;
+		mesh->SetMeshSectionVisible(i, false);
+	}
+
+	if (CurrentHealth < 0) {
+		UE_LOG(LogTemp, Warning, TEXT("Destroyed"))
+		mesh->DestroyComponent();
+		CurrentHealth = 100.0f;
+	}
+
 }
 
 void ADestroyPack::OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, FVector NormalImpulse, const FHitResult & Hit)
 {
-	//UE_LOG(LogTemp, Warning, TEXT("HIIIIT"))
+	DestroyQuadSection();
 }
 
 
@@ -117,14 +115,9 @@ void ADestroyPack::CreateQuad()
 
 	int verts = idb->Triangulate(POINTS, &cloud->x, &cloud->y, sizeof(Point2));
 
-	for (int i = 0; i < verts; i++)
-	{
-		vertices.Add(FVector(cloud[i].x, cloud[i].y, 0));
-	}
 	std::vector<DelaBella_Triangle> triangles;
 	std::vector<DelaBella_Vertex> triangleVertices;  //All unique vertices of triangles
 
-	UE_LOG(LogTemp, Warning, TEXT("number of vertices: %d"), verts)
 		//if positive, all ok 
 		if (verts > 0)
 		{
@@ -133,9 +126,6 @@ void ADestroyPack::CreateQuad()
 
 			for (int i = 0; i < tris; i++)
 			{
-				UE_LOG(LogTemp, Warning, TEXT("v1= (%f, %f) v2= (%f, %f) v3= (%f, %f) "), dela->v[0]->x, dela->v[0]->y, dela->v[1]->x
-					, dela->v[1]->y, dela->v[2]->x, dela->v[2]->y)
-
 				triangles.push_back(*dela);
 				dela = dela->next;
 			}
@@ -152,29 +142,30 @@ void ADestroyPack::CreateQuad()
 
 	triangleIndices = CalculateTriangleIndices(triangles, triangleVertices);
 
-	//int i = 0;
-	//for (auto &index : triangleIndices) {
-	//	UE_LOG(LogTemp, Warning, TEXT("Index %d"), index)
-	//		i++;
-	//}
-
 	for (int i = 0; i < triangleIndices.size(); i++)
 	{
 		Triangles.Add(triangleIndices[i]);
 	}
 
-
-
 	for (int i = 0; i < triangleVertices.size(); i++)
 	{
 		normals.Add(FVector(1, 0, 0));
 		UV0.Add(FVector2D(triangleVertices[i].x, triangleVertices[i].y));
+		vertices.Add(FVector(triangleVertices[i].x, triangleVertices[i].y, 0));
 		tangents.Add(FProcMeshTangent(0, 1, 0));
 		vertexColors.Add(FLinearColor(1, 0, 0, 1.0));
 	}
 
+	//mesh->CreateMeshSection_LinearColor(0, vertices, Triangles, normals, UV0, vertexColors, tangents, true);
 
-	mesh->CreateMeshSection_LinearColor(0, vertices, Triangles, normals, UV0, vertexColors, tangents, true);
+	//Create section for every triangle
+	int cnt = 0;
+	triangleInd = 1;
+
+	for (int i = 0; i < triangleIndices.size()/3; i++) {
+		CreateTriangle(cnt);
+		cnt += 3;
+	}
 
 	////// Enable collision data
 	mesh->ContainsPhysicsTriMeshData(true);
@@ -239,29 +230,30 @@ bool ADestroyPack::IsVertexDefined(std::vector<DelaBella_Vertex> triangleVertice
 	return false;
 }
 
-void ADestroyPack::CreateTriangle(TArray<FVector>& vertices, TArray<int32>& triangleIndices, TArray<FVector>& normals, TArray<FVector2D>& UV0, TArray<FProcMeshTangent>& tangents, TArray<FLinearColor>& vertexColors, int i)
+void ADestroyPack::CreateTriangle(int i)
 {
-	UProceduralMeshComponent * triangle;
-
 	TArray<FVector> triVerts;
-	TArray<int32> triIndices;
+	TArray<int> triIndices;
 	TArray<FVector> _normals;
 	TArray<FVector2D> _UV0;
 	TArray<FProcMeshTangent> _tangents;
 	TArray<FLinearColor> _vertexColors;
 
-	for (int v = 0; v < 3; v++) {
-		triVerts.Add(vertices[i + v]);
-		triIndices.Add(triangleIndices[i + v]);
-		_normals.Add(normals[i + v]);
-		_UV0.Add(UV0[i + v]);
-		_tangents.Add(tangents[i + v]);
-		_vertexColors.Add(vertexColors[i + v]);
+	for (int32 v = 0; v < 3; v++) {
+		triVerts.Add(vertices[Triangles[i + v]]);
+		triIndices.Add(v);
+		_UV0.Add(UV0[Triangles[i + v]]);
+		_tangents.Add(FProcMeshTangent(0, 1, 0));
+		_vertexColors.Add(FLinearColor(1, 0, 0, 1.0));
+		_normals.Add(FVector(1, 0, 0));
 	}
-	triangle = CreateDefaultSubobject<UProceduralMeshComponent>(FName("triangle"));
-	triangle->CreateMeshSection_LinearColor(0, triVerts, triIndices, _normals, _UV0, _vertexColors, _tangents, true);
+	UE_LOG(LogTemp, Warning, TEXT("(v %d): (%s) (v %d): (%s) (v %d): (%s) "),triIndices[0],*triVerts[0].ToString(), triIndices[1], *triVerts[1].ToString(), triIndices[2], *triVerts[2].ToString())
+	
+	mesh->CreateMeshSection_LinearColor(triangleInd, triVerts, triIndices, _normals, _UV0, _vertexColors, _tangents, true);
+	//mesh->SetMeshSectionVisible(triangleInd, false);
+	triangleInd++;
 
-	triangle->SetupAttachment(RootComponent);
-	triangle->SetRelativeRotation(FRotator(FMath::FRandRange(-180.0f, 180.0f), FMath::FRandRange(-180.0f, 180.0f), FMath::FRandRange(-180.0f, 180.0f)));
-	triangle->SetRelativeLocation(FVector(FMath::FRandRange(0, width), FMath::FRandRange(0, width), FMath::FRandRange(0, width)));
+
+	/*triangle->SetRelativeRotation(FRotator(FMath::FRandRange(-180.0f, 180.0f), FMath::FRandRange(-180.0f, 180.0f), FMath::FRandRange(-180.0f, 180.0f)));
+	triangle->SetRelativeLocation(FVector(FMath::FRandRange(0, width), FMath::FRandRange(0, width), FMath::FRandRange(0, width)));*/
 }

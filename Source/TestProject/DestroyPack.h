@@ -27,25 +27,24 @@ protected:
 	virtual void BeginPlay() override;
 
 public:	
-	// Called every frame
-	virtual void Tick(float DeltaTime) override;
 
 	//Called by the engine when actor damage is dealt
 	virtual float TakeDamage(float DamageAmount, struct FDamageEvent const & DamageEvent, class AController * EventInstigator, AActor * DamageCauser) override;
 
-	void DestroyQuad();
 private:
 
 	float CurrentHealth = 100.0f; //Object's health in %
-
-	/*UPROPERTY(EditDefaultsOnly, Category = "Components")
-	class UStaticMeshComponent * CollisionMesh = nullptr;*/
+	float DmgAmount = 0.1f;
+	float DisplaySectionAmount = 0.5f;
+	float temp = 0;
 
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, FVector NormalImpulse, const FHitResult & Hit);
 
 	UPROPERTY(VisibleAnywhere)
-		UProceduralMeshComponent * mesh;
+	UProceduralMeshComponent * mesh;
+
+	int triangleInd = 0;
 
 	//Mesh properties
 	int POINTS = 100;
@@ -54,7 +53,7 @@ private:
 
 	//Mesh components
 	TArray<FVector> vertices;
-	TArray<int32> Triangles;
+	TArray<int> Triangles;
 	TArray<FVector> normals;
 	TArray<FVector2D> UV0;
 	TArray<FProcMeshTangent> tangents;
@@ -63,7 +62,7 @@ private:
 	void PostActorCreated();
 	void PostLoad();
 	void CreateQuad();
-
+	void DestroyQuadSection();
 
 	std::vector<int> CalculateTriangleIndices(std::vector<DelaBella_Triangle> triangles, std::vector<DelaBella_Vertex> &triangleVertices);
 
@@ -71,11 +70,6 @@ private:
 		DelaBella_Vertex v,
 		std::vector<int>indices, int &oldIndex);
 
-	void CreateTriangle(TArray<FVector> &vertices, TArray<int32> &triangleIndices, TArray<FVector> &normals,
-		TArray<FVector2D> &UV0,
-		TArray<FProcMeshTangent> &tangents,
-		TArray<FLinearColor> &vertexColors, int i);
-
-
+	void CreateTriangle(int i);
 
 };

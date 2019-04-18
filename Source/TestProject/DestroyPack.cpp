@@ -40,7 +40,6 @@ void ADestroyPack::PostActorCreated()
 void ADestroyPack::PostLoad()
 {
 	Super::PostLoad();
-	//CreateQuad();
 }
 
 void ADestroyPack::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
@@ -70,7 +69,6 @@ float ADestroyPack::TakeDamage(float DamageAmount, FDamageEvent const & DamageEv
 void ADestroyPack::DestroyQuadSections()
 {
 	CurrentHealth -= DmgAmount;
-	UE_LOG(LogTemp, Warning, TEXT("Current Health = %f"), CurrentHealth)
 
 	temp += DmgAmount;
 	int32 i = FMath::RandRange(1, Points - 1);
@@ -81,7 +79,6 @@ void ADestroyPack::DestroyQuadSections()
 	}
 
 	if (CurrentHealth < 0) {
-		UE_LOG(LogTemp, Warning, TEXT("Destroyed"))
 		Mesh->DestroyComponent();
 		CurrentHealth = 100.0f;
 	}
@@ -269,7 +266,7 @@ void ADestroyPack::CreateTriangle(int i)
 		_vertexColors.Add(FLinearColor(1, 0, 0, 1.0));
 		_normals.Add(FVector(1, 0, 0));
 	}
-	UE_LOG(LogTemp, Warning, TEXT("(v %d): (%s) (v %d): (%s) (v %d): (%s) "),triIndices[0],*triVerts[0].ToString(), triIndices[1], *triVerts[1].ToString(), triIndices[2], *triVerts[2].ToString())
+	//UE_LOG(LogTemp, Warning, TEXT("(v %d): (%s) (v %d): (%s) (v %d): (%s) "),triIndices[0],*triVerts[0].ToString(), triIndices[1], *triVerts[1].ToString(), triIndices[2], *triVerts[2].ToString())
 	
 	Mesh->CreateMeshSection_LinearColor(triangleInd, triVerts, triIndices, _normals, _UV0, _vertexColors, _tangents, true);
 	triangleInd++;

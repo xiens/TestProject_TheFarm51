@@ -3,6 +3,7 @@
 #include "Lamp.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SpotLightComponent.h"
+#include "Components/SphereComponent.h"
 #include "CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "CoreUObject/Public/UObject/Class.h"
 #include "Engine/Public/DrawDebugHelpers.h "
@@ -21,47 +22,48 @@ ALamp::ALamp()
 	if (CeilingLampAsset.Succeeded())
 	{
 		CollisionMesh->SetStaticMesh(CeilingLampAsset.Object);
-		//CollisionMesh->SetRelativeRotation(FRotator(180.0f, 0.0f, 0.0f));
 	}
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> SwitchAsset(TEXT("/Game/StarterContent/Architecture/SM_AssetPlatform.SM_AssetPlatform"));
 	if (SwitchAsset.Succeeded()) {
 		
 		SwitchMesh->SetStaticMesh(SwitchAsset.Object);
 		SwitchMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
+		SwitchMesh->SetupAttachment(RootComponent);
 	}
-
-
 	RootComponent = CollisionMesh;
 	CollisionMesh->SetNotifyRigidBodyCollision(true);
 
-	
-
 	SpotLight = CreateDefaultSubobject<USpotLightComponent>(FName("SpotLight"));
+	SpotLight->bVisible = true;
+	SpotLight->Intensity = LightIntensity;
 	SpotLight->SetupAttachment(RootComponent);
 	SpotLight->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
 	SpotLight->SetRelativeLocation(FVector(0.0f, 0.0f, -125.0f));
 
+	LightTrigger = CreateDefaultSubobject<USphereComponent>(TEXT("Light Sphere Component"));
+	LightTrigger->InitSphereRadius(100.0f);
+	LightTrigger->SetCollisionProfileName(TEXT("Trigger"));
+	LightTrigger->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
+	LightTrigger->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
 void ALamp::BeginPlay()
 {
 	Super::BeginPlay();
-	R = Min + 1; //FMath::FRandRange(0, 255);
-	G = Min + 1; //FMath::FRandRange(0, 255);
-	B = Min + 1; //FMath::FRandRange(0, 255);
+	R = Min + 1;
+	G = Min + 1; 
+	B = Min + 1;
 
-	SwitchMesh->SetupAttachment(RootComponent);
 	SwitchMesh->SetRelativeLocation(SwitchLocation);
-	SwitchMesh->SetNotifyRigidBodyCollision(true);
-	SwitchMesh->OnComponentHit.AddDynamic(this, &ALamp::OnHit);
+	LightTrigger->SetRelativeLocation(SwitchLocation);
 }
 
 // Called every frame
 void ALamp::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
-		
+
 	ChangeRGB(StartingColor, R, G, B);
 	FColor Color = FColor(R, G, B, 255);
 	ChangeColor(Color);
@@ -70,12 +72,7 @@ void ALamp::Tick(float DeltaTime)
 void ALamp::ToggleLight()
 {
 	SpotLight->ToggleActive();
-}
-
-void ALamp::OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, FVector NormalImpulse, const FHitResult & Hit)
-{
-	UE_LOG(LogTemp, Warning, TEXT("light toggle"))
-	ToggleLight();
+	SpotLight->ToggleVisibility();
 }
 
 void ALamp::ChangeRGB(ColorEnum &Colors, uint8 &R, uint8 &G, uint8 &B)

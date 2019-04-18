@@ -11,6 +11,7 @@
 #include "GameFramework/DamageType.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/Public/DrawDebugHelpers.h "
+#include "Lamp.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ATestProjectCharacter
@@ -46,6 +47,17 @@ ATestProjectCharacter::ATestProjectCharacter()
 	FollowCamera->SetupAttachment(CameraBoom, USpringArmComponent::SocketName); // Attach the camera to the end of the boom and let the boom adjust to match the controller orientation
 	FollowCamera->bUsePawnControlRotation = false; // Camera does not rotate relative to arm
 
+
+	TriggerCapsule = CreateDefaultSubobject<UCapsuleComponent>(TEXT("Trigger Capsule"));
+	TriggerCapsule->InitCapsuleSize(55.f, 96.0f);;
+	TriggerCapsule->SetCollisionProfileName(TEXT("Trigger"));
+	TriggerCapsule->SetupAttachment(RootComponent);
+
+
+	// Bind trigger events
+	TriggerCapsule->OnComponentBeginOverlap.AddDynamic(this, &ATestProjectCharacter::OnOverlapBegin);
+	TriggerCapsule->OnComponentEndOverlap.AddDynamic(this, &ATestProjectCharacter::OnOverlapEnd);
+
 	// Note: The skeletal mesh and anim blueprint references on the Mesh component (inherited from Character) 
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
@@ -65,7 +77,8 @@ void ATestProjectCharacter::OnHit(UPrimitiveComponent * HitComponent, AActor * O
 void ATestProjectCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ATestProjectCharacter::OnHit);
+	CurrentLightSwitch = NULL;
+	//GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ATestProjectCharacter::OnHit);
 }
 
 void ATestProjectCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -93,12 +106,10 @@ void ATestProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	// VR headset functionality
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ATestProjectCharacter::OnResetVR);
 
-	//break glass
-	//PlayerInputComponent->BindAction("BreakGlass", IE_Pressed, this, &ATestProjectCharacter::BreakGlass);
+	//toggle light
+	 PlayerInputComponent->BindAction("Action", IE_Pressed, this, &ATestProjectCharacter::OnAction);
 }
-void ATestProjectCharacter::BreakGlass() {
-	UE_LOG(LogTemp, Warning, TEXT("Breaking glass"))
-}
+
 
 void ATestProjectCharacter::OnResetVR()
 {
@@ -196,6 +207,32 @@ void ATestProjectCharacter::MoveRight(float Value)
 		const FVector Direction = FRotationMatrix(YawRotation).GetUnitAxis(EAxis::Y);
 		// add movement in that direction
 		AddMovementInput(Direction, Value);
+	}
+}
+
+void ATestProjectCharacter::OnAction()
+{
+	if (CurrentLightSwitch)
+	{
+		CurrentLightSwitch->ToggleLight();
+	}
+}
+
+// overlap on begin function
+void ATestProjectCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
+{
+	if (OtherActor && (OtherActor != this) && OtherComp && OtherActor->GetClass()->IsChildOf(ALamp::StaticClass()))
+	{
+		CurrentLightSwitch = Cast<ALamp>(OtherActor);
+	}
+}
+
+// overlap on end function
+void ATestProjectCharacter::OnOverlapEnd(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex)
+{
+	if (OtherActor && (OtherActor != this) && OtherComp)
+	{
+		CurrentLightSwitch = NULL;
 	}
 }
 

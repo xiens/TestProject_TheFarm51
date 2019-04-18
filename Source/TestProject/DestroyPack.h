@@ -34,10 +34,10 @@ public:
 private:
 
 	float CurrentHealth = 100.0f; //Object's health in %
-	float DmgAmount = 0.1f;
-	float DisplaySectionAmount = 0.5f;
-	float temp = 0;
-	int triangleInd = 0;
+	float DmgAmount = 0.1f; //Damage caused by every player's hit
+	float DisplaySectionAmount = 0.5f; //Amount of damage to hide another mesh section
+	float temp = 0; //Temporary variable used in DestroyQuadSections()
+	int triangleInd = 0; //Current index of triangle used in CreateTriangle()
 
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, FVector NormalImpulse, const FHitResult & Hit);

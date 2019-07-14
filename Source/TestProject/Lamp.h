@@ -9,7 +9,7 @@
 UENUM(BlueprintType)
 enum class ColorEnum : uint8
 {
-	White =0 		UMETA(DisplayName = "White"),
+	White = 0 		UMETA(DisplayName = "White"),
 	Yellow = 1	 	UMETA(DisplayName = "Yellow"),
 	Light_Blue = 2	UMETA(DisplayName = "Light_Blue"),
 	Red= 3 			UMETA(DisplayName = "Red"),
@@ -68,17 +68,28 @@ private:
 	ColorEnum StartingColor = ColorEnum::White;
 
 	UPROPERTY(EditAnywhere, Category = "Light properties")
+	float LightChangeRate = 0.3f;
+
+	UPROPERTY(EditAnywhere, Category = "Light properties")
 	float LightIntensity = 50000.0f;
 
-	// light r, g, b components
-	uint8 R, G, B;
-	//max r, g, b value
-	uint8 Max = 250;
-	//min r, g, b value
-	uint8 Min = 100; 
-	//flag used in ChangeRGB function
-	bool IsAdding = true; 
-	//Changes r, g, b values of light color 
-	void ChangeRGB(ColorEnum &Colors, uint8 &R, uint8 &G, uint8 &B);
+	ColorEnum FindNextColor(ColorEnum &NextColor, FVector &NextColorVal);
+	FVector FindColorVal(ColorEnum &Color);
+	void ChangeColorOverTime(float DeltaTime);
 
+	//some predefined values for colors
+	FVector White = FVector(1, 1, 1);
+	FVector Yellow = FVector(1, 1, 0);
+	FVector Light_Blue = FVector(0, 0.8f, 0.85f);
+	FVector Red = FVector(1, 0, 0);
+	FVector Green = FVector(0, 1, 0);
+
+	//time used in lerp, changes depending on LightChangeRate and DeltaTime
+	float time = 1.1f;
+
+	ColorEnum CurrentColor = StartingColor;
+	ColorEnum NextColor = StartingColor;
+
+	FVector CurrentColorVal = FindColorVal(StartingColor);
+	FVector NextColorVal = CurrentColorVal;
 };

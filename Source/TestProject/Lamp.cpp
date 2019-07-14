@@ -51,9 +51,6 @@ ALamp::ALamp()
 void ALamp::BeginPlay()
 {
 	Super::BeginPlay();
-	R = Min + 1;
-	G = Min + 1; 
-	B = Min + 1;
 
 	SwitchMesh->SetRelativeLocation(SwitchLocation);
 	LightTrigger->SetRelativeLocation(SwitchLocation);
@@ -64,108 +61,94 @@ void ALamp::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
-	ChangeRGB(StartingColor, R, G, B);
-	FColor Color = FColor(R, G, B, 255);
-	ChangeColor(Color);
+	ChangeColorOverTime(DeltaTime);
 }
 
-void ALamp::ToggleLight()
+void ALamp::ChangeColorOverTime(float DeltaTime)
 {
-	SpotLight->ToggleActive();
-	SpotLight->ToggleVisibility();
-}
-
-void ALamp::ChangeRGB(ColorEnum &Colors, uint8 &R, uint8 &G, uint8 &B)
-{
-	switch (Colors) {
-	case ColorEnum::White: {
-
-		if (R >= Max) IsAdding = false;
-		if (R <= Min) { IsAdding = true; Colors = ColorEnum::Green; }
-
-		if (R < Max &&  IsAdding) {
-			R++;
-			G++;
-			B++;
-		}
-		else if (R > Min && !IsAdding) {
-			R--;
-			G--;
-			B--;
-
-		}
-
-		break;
-		}
-		case ColorEnum::Green:{
-
-			if (G >= Max) IsAdding = false;
-			if (G <= Min) { IsAdding = true; Colors = ColorEnum::Light_Blue;}
-
-			if (G < Max && IsAdding) {
-				G++;
-
-			}
-			else if (G > Min && !IsAdding) {
-				G--;
-			}
-
-			break;
-		}
-		case ColorEnum::Light_Blue: {
-
-			if (B >= Max) IsAdding = false;
-			if (B <= Min) { IsAdding = true; Colors = ColorEnum::Yellow;}
-
-			if (B < Max && IsAdding) {
-				B += 2;
-				G++;
-
-			}
-			else if (B > Min && !IsAdding) {
-				B -= 2;
-				G--;
-			}
-
-			break;
-		}
-		case ColorEnum::Yellow: {
-
-			if (R >= Max) IsAdding = false;
-			if (R <= Min) { IsAdding = true; Colors = ColorEnum::Red; }
-
-			if (B < Max && IsAdding) {
-				R++;
-				G++;
-
-			}
-			else if (B > Min && !IsAdding) {
-				R--;
-				G--;
-			}
-
-			break;
-		}
-		case ColorEnum::Red: {
-
-			if (R >= Max) IsAdding = false;
-			if (R <= Min) { IsAdding = true; Colors = ColorEnum::White; }
-
-			if (R < Max &&  IsAdding) {
-				R++;
-			}
-			else if (R > Min && !IsAdding) {
-				R--;
-			}
-
-			break;
-		}
-
+	if (time > 1.0f) {
+		time = 0.0f;
+		CurrentColor = NextColor;
+		CurrentColorVal = NextColorVal;
+		NextColor = FindNextColor(CurrentColor, NextColorVal);
 	}
+
+	time += DeltaTime * LightChangeRate;
+	FVector Col = FMath::Lerp(CurrentColorVal, NextColorVal, time);
+
+
+	FColor Color = FColor(Col.X * 255, Col.Y * 255, Col.Z * 255, 255);
+	ChangeColor(Color);
 }
 
 void ALamp::ChangeColor(FColor Color)
 {
 	FLinearColor ColorToChange = FLinearColor(Color);
 	SpotLight->SetLightColor(ColorToChange);
+}
+
+ColorEnum ALamp::FindNextColor(ColorEnum &NextColor, FVector &NextColorVal)
+{
+	switch (NextColor) {
+		case ColorEnum::White: {
+			NextColorVal = Green;
+			return ColorEnum::Green;
+			break;
+		}
+		case ColorEnum::Green: {
+			NextColorVal = Light_Blue;
+			return ColorEnum::Light_Blue;
+			break;
+		}
+		case ColorEnum::Light_Blue: {
+			NextColorVal = Yellow;
+			return ColorEnum::Yellow;
+			break;
+		}
+		case ColorEnum::Yellow: {
+			NextColorVal = Red;
+			return ColorEnum::Red;
+			break;
+		}
+		case ColorEnum::Red: {
+			NextColorVal = White;
+			return ColorEnum::White;
+			break;
+		}
+	}
+	return ColorEnum::White;
+}
+
+FVector ALamp::FindColorVal(ColorEnum & Color)
+{
+	switch (Color) {
+		case ColorEnum::White: {
+			return White;
+			break;
+		}
+		case ColorEnum::Green: {
+			return Green;
+			break;
+		}
+		case ColorEnum::Light_Blue: {
+			return Light_Blue;
+			break;
+		}
+		case ColorEnum::Yellow: {
+			return Yellow;
+			break;
+		}
+		case ColorEnum::Red: {
+			return Red;
+			break;
+		}
+	}
+
+	return FVector(1,1,1); //white value as default
+}
+
+void ALamp::ToggleLight()
+{
+	SpotLight->ToggleActive();
+	SpotLight->ToggleVisibility();
 }

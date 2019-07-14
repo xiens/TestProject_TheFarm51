@@ -19,6 +19,8 @@ ADestroyPack::ADestroyPack()
 	Mesh->SetRelativeRotation(FRotator(0.0f, 0.0f, 90.0f));
 	Mesh->bUseAsyncCooking = true;
 	Mesh->SetNotifyRigidBodyCollision(true);
+	Mesh->bUseComplexAsSimpleCollision = true;
+	//Mesh->SetSimulatePhysics(true);
 
 	RootComponent = Mesh;
 }
@@ -42,11 +44,11 @@ void ADestroyPack::PostLoad()
 	Super::PostLoad();
 }
 
-void ADestroyPack::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
-{
-	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
-	DOREPLIFETIME(ADestroyPack, Mesh);
-}
+//void ADestroyPack::GetLifetimeReplicatedProps(TArray< FLifetimeProperty > & OutLifetimeProps) const
+//{
+//	Super::GetLifetimeReplicatedProps(OutLifetimeProps);
+//	//DOREPLIFETIME(ADestroyPack, Mesh);
+//}
 
 float ADestroyPack::TakeDamage(float DamageAmount, FDamageEvent const & DamageEvent, AController * EventInstigator, AActor * DamageCauser)
 {
@@ -76,6 +78,7 @@ void ADestroyPack::DestroyQuadSections()
 	if (temp >= DisplaySectionAmount) {
 		temp = 0;
 		Mesh->SetMeshSectionVisible(i, false);
+
 	}
 
 	if (CurrentHealth < 0) {

@@ -60,12 +60,6 @@ protected:
 	/** Handler for when a touch input stops. */
 	void TouchStopped(ETouchIndex::Type FingerIndex, FVector Location);
 
-	/** Inflicts damage to object in front */
-	void InflictDamage();
-
-	UFUNCTION()
-	void OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, FVector NormalImpulse, const FHitResult & Hit);
-
 	// Called when the game starts or when spawned
 	virtual void BeginPlay() override;
 
@@ -77,9 +71,10 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Trigger Capsule")
 	class UCapsuleComponent* TriggerCapsule;
 
-	ALamp * CurrentLightSwitch;
+	ALamp * CurrentLightSwitch = nullptr;
 
-	void OnAction();
+	// Toggles light on/off
+	void OnToggleLight();
 	UFUNCTION()
 	void OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult);
 	UFUNCTION()

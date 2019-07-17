@@ -87,31 +87,31 @@ void ALamp::ChangeColor(FColor Color)
 	SpotLight->SetLightColor(ColorToChange);
 }
 
-ColorEnum ALamp::FindNextColor(ColorEnum &NextColor, FVector &NextColorVal)
+ColorEnum ALamp::FindNextColor(ColorEnum &Color, FVector &ColorVal)
 {
-	switch (NextColor) {
+	switch (Color) {
 		case ColorEnum::White: {
-			NextColorVal = Green;
+			ColorVal = Green;
 			return ColorEnum::Green;
 			break;
 		}
 		case ColorEnum::Green: {
-			NextColorVal = Light_Blue;
+			ColorVal = Light_Blue;
 			return ColorEnum::Light_Blue;
 			break;
 		}
 		case ColorEnum::Light_Blue: {
-			NextColorVal = Yellow;
+			ColorVal = Yellow;
 			return ColorEnum::Yellow;
 			break;
 		}
 		case ColorEnum::Yellow: {
-			NextColorVal = Red;
+			ColorVal = Red;
 			return ColorEnum::Red;
 			break;
 		}
 		case ColorEnum::Red: {
-			NextColorVal = White;
+			ColorVal = White;
 			return ColorEnum::White;
 			break;
 		}

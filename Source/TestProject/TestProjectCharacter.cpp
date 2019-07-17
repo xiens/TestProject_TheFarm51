@@ -62,23 +62,12 @@ ATestProjectCharacter::ATestProjectCharacter()
 	// are set in the derived blueprint asset named MyCharacter (to avoid direct content references in C++)
 }
 
-//////////////////////////////////////////////////////////////////////////
-// Input
-
-void ATestProjectCharacter::OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, FVector NormalImpulse, const FHitResult & Hit)
-{
-	if (OtherActor->GetClass()->GetName() == "DestroyPack") {
-		//UE_LOG(LogTemp, Warning, TEXT("other actor class name: %s"), *(OtherActor)->GetClass()->GetName())
-			InflictDamage();
-	}
-
-}
 
 void ATestProjectCharacter::BeginPlay()
 {
 	Super::BeginPlay();
-	CurrentLightSwitch = NULL;
-	//GetCapsuleComponent()->OnComponentHit.AddDynamic(this, &ATestProjectCharacter::OnHit);
+	CurrentLightSwitch = nullptr;
+	
 }
 
 void ATestProjectCharacter::SetupPlayerInputComponent(class UInputComponent* PlayerInputComponent)
@@ -107,7 +96,7 @@ void ATestProjectCharacter::SetupPlayerInputComponent(class UInputComponent* Pla
 	PlayerInputComponent->BindAction("ResetVR", IE_Pressed, this, &ATestProjectCharacter::OnResetVR);
 
 	//toggle light
-	 PlayerInputComponent->BindAction("Action", IE_Pressed, this, &ATestProjectCharacter::OnAction);
+	 PlayerInputComponent->BindAction("ToggleLight", IE_Pressed, this, &ATestProjectCharacter::OnToggleLight);
 }
 
 
@@ -126,49 +115,6 @@ void ATestProjectCharacter::TouchStopped(ETouchIndex::Type FingerIndex, FVector 
 		StopJumping();
 }
 
-void ATestProjectCharacter::InflictDamage()
-{
-	APlayerController* PlayerController = Cast<APlayerController>(GetController());
-	if (PlayerController != nullptr)
-	{
-		
-			DrawDebugLine(
-				GetWorld(),
-				GetActorLocation(),
-				GetActorLocation()+GetActorForwardVector()*50.0f,
-				FColor(255, 0, 0),
-				false, -1, 0,
-				12.333
-			);
-
-		// Perform a trace @See LineTraceSingle  
-		FHitResult TraceResult(ForceInit);
-
-		GetWorld()->LineTraceSingleByChannel(
-			TraceResult,
-			GetActorLocation(),
-			GetActorLocation() + GetActorForwardVector()*50.0f,
-			ECollisionChannel::ECC_Destructible);
-		//TraceHitForward(PlayerController, TraceResult);
-
-		// If the trace return an actor, inflict some damage to that actor  
-		AActor* ImpactActor = TraceResult.GetActor();
-		if(ImpactActor != nullptr) UE_LOG(LogTemp, Warning, TEXT("Actor hit %s"), *ImpactActor->GetName())
-		if ((ImpactActor != nullptr) && (ImpactActor != this))
-		{
-
-			// Create a damage event  
-			TSubclassOf<UDamageType> const ValidDamageTypeClass = TSubclassOf<UDamageType>();
-			FDamageEvent DamageEvent(ValidDamageTypeClass);
-
-			const float DamageAmount = 60.0f;
-			UE_LOG(LogTemp, Warning, TEXT("Impact actor take damage called"))
-			ImpactActor->TakeDamage(DamageAmount, DamageEvent, PlayerController, this);
-		}
-	}
- 
-}
-
 void ATestProjectCharacter::TurnAtRate(float Rate)
 {
 	// calculate delta for this frame from the rate information
@@ -183,7 +129,7 @@ void ATestProjectCharacter::LookUpAtRate(float Rate)
 
 void ATestProjectCharacter::MoveForward(float Value)
 {
-	if ((Controller != NULL) && (Value != 0.0f))
+	if ((Controller != nullptr) && (Value != 0.0f))
 	{
 		// find out which way is forward
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -197,7 +143,7 @@ void ATestProjectCharacter::MoveForward(float Value)
 
 void ATestProjectCharacter::MoveRight(float Value)
 {
-	if ( (Controller != NULL) && (Value != 0.0f) )
+	if ( (Controller != nullptr) && (Value != 0.0f) )
 	{
 		// find out which way is right
 		const FRotator Rotation = Controller->GetControlRotation();
@@ -210,7 +156,7 @@ void ATestProjectCharacter::MoveRight(float Value)
 	}
 }
 
-void ATestProjectCharacter::OnAction()
+void ATestProjectCharacter::OnToggleLight()
 {
 	if (CurrentLightSwitch)
 	{
@@ -232,7 +178,7 @@ void ATestProjectCharacter::OnOverlapEnd(class UPrimitiveComponent* OverlappedCo
 {
 	if (OtherActor && (OtherActor != this) && OtherComp)
 	{
-		CurrentLightSwitch = NULL;
+		CurrentLightSwitch = nullptr;
 	}
 }
 

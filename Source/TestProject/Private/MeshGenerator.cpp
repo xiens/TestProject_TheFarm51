@@ -72,13 +72,15 @@ void MeshGenerator::CreateQuad(int32 Points, float Height, float Width, UProcedu
 		Triangles.Add(triangleIndices[i]);
 	}
 
+	UV0.AddZeroed(triangleVertices.size());
+
 	for (int i = 0; i < triangleVertices.size(); i++)
 	{
-		Normals.Add(FVector(1, 0, 0));
-		UV0.Add(FVector2D(triangleVertices[i].x, triangleVertices[i].y));
+		Normals.Add(FVector(0, 0, 1));
 		Vertices.Add(FVector(triangleVertices[i].x, triangleVertices[i].y, 0));
 		Tangents.Add(FProcMeshTangent(0, 1, 0));
 		VertexColors.Add(FLinearColor(1, 0, 0, 1.0));
+		UV0[i] = CalculateUV(Vertices[i], Height, Width);
 	}
 
 	//Create section for every triangle in our mesh
@@ -90,6 +92,10 @@ void MeshGenerator::CreateQuad(int32 Points, float Height, float Width, UProcedu
 	Mesh->ContainsPhysicsTriMeshData(true);
 }
 
+FVector2D MeshGenerator::CalculateUV(const FVector &Vertices, float Height, float Width)
+{
+	return FVector2D(1 - (Vertices.Y + Height/2.0f) / Height, (Vertices.X + Width/2.0f) / Width);
+}
 std::vector<int> MeshGenerator::CalculateTriangleIndices(std::vector<DelaBella_Triangle> triangles, std::vector<DelaBella_Vertex>& triangleVertices)
 {
 	std::vector<int> allIndices;; //All unique indices of vertices of triangles
@@ -163,7 +169,7 @@ void MeshGenerator::CreateTriangle(int i, UProceduralMeshComponent * Mesh)
 		_UV0.Add(UV0[Triangles[3 * i + v]]);
 		_tangents.Add(FProcMeshTangent(0, 1, 0));
 		_vertexColors.Add(FLinearColor(1, 0, 0, 1.0));
-		_normals.Add(FVector(1, 0, 0));
+		_normals.Add(FVector(0, 0, 1));
 	}
 
 	Mesh->CreateMeshSection_LinearColor(i, triVerts, triIndices, _normals, _UV0, _vertexColors, _tangents, true);

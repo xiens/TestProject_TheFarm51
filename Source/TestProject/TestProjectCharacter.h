@@ -6,7 +6,7 @@
 #include "GameFramework/Character.h"
 #include "TestProjectCharacter.generated.h"
 
-class ALamp;
+class ALampSwitch;
 
 UCLASS(config=Game)
 class ATestProjectCharacter : public ACharacter
@@ -71,7 +71,7 @@ protected:
 	UPROPERTY(VisibleAnywhere, Category = "Trigger Capsule")
 	class UCapsuleComponent* TriggerCapsule;
 
-	ALamp * CurrentLightSwitch = nullptr;
+	ALampSwitch * CurrentLightSwitch = nullptr;
 
 	// Toggles light on/off
 	void OnToggleLight();

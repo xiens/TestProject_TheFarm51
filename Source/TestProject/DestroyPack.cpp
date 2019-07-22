@@ -20,7 +20,6 @@ ADestroyPack::ADestroyPack()
 	bReplicates = true;
 
 	BoxComponent = CreateDefaultSubobject<UBoxComponent>(TEXT("BoxCollision"));
-	BoxComponent->SetBoxExtent(FVector(Width*0.5f, Height*0.5f, 1.0f));
 	BoxComponent->SetCollisionEnabled(ECollisionEnabled::QueryAndPhysics);
 	BoxComponent->SetCollisionResponseToAllChannels(ECollisionResponse::ECR_Block);
 	BoxComponent->SetCollisionObjectType(ECollisionChannel::ECC_WorldDynamic);
@@ -49,6 +48,7 @@ void ADestroyPack::PostActorCreated()
 {
 	Super::PostActorConstruction();
 	MeshGen->GenerateMesh(Points, Height, Width, Mesh);
+	BoxComponent->SetBoxExtent(FVector(Width*0.5f, Height*0.5f, 1.0f)); 
 }
 
 void ADestroyPack::PostLoad()
@@ -56,10 +56,12 @@ void ADestroyPack::PostLoad()
 	Super::PostLoad();
 }
 
+
 void ADestroyPack::OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, FVector NormalImpulse, const FHitResult & Hit)
 {
 	if (Cast<ATestProjectCharacter>(OtherActor)) {
-		DestroyQuadSections();
+		//DestroyQuadSections();
+		DiscoFloor();
 	}
 }
 
@@ -68,7 +70,8 @@ void ADestroyPack::DestroyQuadSections()
 	CurrentHealth -= DmgAmount;
 
 	temp += DmgAmount;
-	int32 i = FMath::RandRange(1, Points - 1);
+
+	int32 i = FMath::RandRange(0, Mesh->GetNumSections() - 1);
 
 	if (temp >= HideSectionAmount) {
 		temp = 0;
@@ -78,11 +81,23 @@ void ADestroyPack::DestroyQuadSections()
 	if (CurrentHealth < 0) {
 		Mesh->DestroyComponent();
 		BoxComponent->DestroyComponent();
-		CurrentHealth = 100.0f;
+		CurrentHealth = MaxHealth;
 	}
 	Server_DestroyQuadSections();
 }
 
+void ADestroyPack::DiscoFloor()
+{
+	temp += DmgAmount;
+
+	int32 i = FMath::RandRange(0, Mesh->GetNumSections() - 1);
+
+	if (temp >= HideSectionAmount) {
+		temp = 0;
+		bool IsHiding = FMath::RandRange(0.0f, 1.0f) > 0.5f ? false : true;
+		Mesh->SetMeshSectionVisible(i, IsHiding);
+	}
+}
 
 void ADestroyPack::EndPlay(const EEndPlayReason::Type EndPlayReason)
 {

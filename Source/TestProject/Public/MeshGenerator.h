@@ -17,6 +17,13 @@ public:
 	MeshGenerator();
 	~MeshGenerator();
 
+	/**
+	 * Generates rectangular mesh for given number of @Points with specified @Width and @Height
+	 * @param Points - number of points to generate mesh
+	 * @param Height - height of rectangle
+	 * @param Width - width of rectangle
+	 * @param Mesh - mesh to modify
+	 */
 	void GenerateMesh(int32 Points, float Height, float Width, UProceduralMeshComponent * Mesh);
 
 private:
@@ -31,6 +38,8 @@ private:
 
 	//Creates the quad from triangles using Delaunay Triangulation
 	void CreateQuad(int32 Points, float Height, float Width, UProceduralMeshComponent * Mesh);
+
+	FVector2D CalculateUV(const FVector &Vertices, float Height, float Width);
 
 	//Returns the triangle indices needed for mesh creation
 	std::vector<int> CalculateTriangleIndices(std::vector<DelaBella_Triangle> triangles, std::vector<DelaBella_Vertex> &triangleVertices);

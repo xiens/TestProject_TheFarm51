@@ -44,14 +44,18 @@ private:
 
 	MeshGenerator * MeshGen = nullptr;
 
-	const int Points = 200; //Number of points, used in triangulation
-	const float Width = 100.0f; //Width of generated quad
-	const float Height = 450.0f; //Height of generated quad
+	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	int Points = 200; //Number of points, used in triangulation
+	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	float Width = 100.0f; //Width of generated quad
+	UPROPERTY(EditDefaultsOnly, Category = "Mesh")
+	float Height = 450.0f; //Height of generated quad
+	UPROPERTY(EditAnywhere, Category = "Destruction parameters")
+	float DmgAmount = 0.1f; //Damage caused by every player's hit
+	UPROPERTY(EditAnywhere, Category = "Destruction parameters")
+	float HideSectionAmount = 0.5f; //Amount of damage to hide another mesh section
 
-	const float DmgAmount = 0.1f; //Damage caused by every player's hit
-	const float HideSectionAmount = 0.5f; //Amount of damage to hide another mesh section
-
-	float CurrentHealth = 100.0f; //Object's health in %
+	float MaxHealth = 100.0f, CurrentHealth = 100.0f; //Object's health in %
 	float temp = 0; //Temporary variable used in DestroyQuadSections()
 
 	UFUNCTION()
@@ -65,6 +69,10 @@ private:
 
 	//Destroys some random sections of quad, called when player hits this object
 	void DestroyQuadSections();
+
+	void DiscoFloor();
+
+	void CreateSimpleQuad();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_DestroyQuadSections();

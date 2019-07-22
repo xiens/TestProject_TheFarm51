@@ -20,6 +20,7 @@ enum class ColorEnum : uint8
 class UStaticMeshComponent;
 class USpotLightComponent;
 class USphereComponent;
+class ALampSwitch;
 
 /**
 * Lamp actor with switch to turn light on/off
@@ -52,21 +53,15 @@ public:
 	void ChangeColor(FColor color);
 
 private:
-	//Location of SwitchMesh and LightTrigger
-	UPROPERTY(EditAnywhere, Meta = (MakeEditWidget = true))
-	FVector SwitchLocation = GetActorLocation() + FVector(20.0f,0,0);
 
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
-	class UStaticMeshComponent * SwitchMesh = nullptr;
+	UStaticMeshComponent * CollisionMesh = nullptr;
 
 	UPROPERTY(EditDefaultsOnly, Category = "Components")
-	class USphereComponent* LightTrigger = nullptr;
+	USpotLightComponent * SpotLight = nullptr;
 
-	UPROPERTY(EditDefaultsOnly, Category = "Components")
-	class UStaticMeshComponent * CollisionMesh = nullptr;
-
-	UPROPERTY(EditDefaultsOnly, Category = "Components")
-	class USpotLightComponent * SpotLight = nullptr;
+	UPROPERTY(EditAnywhere, Category = "Components")
+	ALampSwitch * LampSwitch = nullptr;
 
 	UPROPERTY(EditAnywhere, Category = "Light properties")
 	ColorEnum StartingColor = ColorEnum::White;
@@ -77,6 +72,20 @@ private:
 	UPROPERTY(EditAnywhere, Category = "Light properties")
 	float LightIntensity = 5000.0f;
 
+	//Moving lamp in a circular motion
+	UPROPERTY(EditAnywhere, Category = "Lamp Movement")
+	FVector S = FVector(-510.0f, -460.0f, GetActorLocation().Z);
+	UPROPERTY(EditAnywhere, Category = "Lamp Movement")
+	float r = 300.0f;
+	UPROPERTY(EditAnywhere, Category = "Lamp Movement")
+	float Speed = 0.7f;
+
+	float angle = 0.0f;
+	/**
+	* Moves the lamp in a circle with radius r and center in S
+	* @param DeltaTime - Time elapsed since the last frame update
+	*/
+	void MoveInCircle(float DeltaTime);
 	/**
 	 * Returns next color in ColorEnum depending on @param Color
 	 * @param Color	- given color
@@ -109,4 +118,6 @@ private:
 
 	FVector CurrentColorVal = FindColorVal(StartingColor);
 	FVector NextColorVal = CurrentColorVal;
+
+
 };

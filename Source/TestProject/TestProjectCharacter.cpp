@@ -11,7 +11,7 @@
 #include "GameFramework/DamageType.h"
 #include "GameFramework/PlayerController.h"
 #include "Engine/Public/DrawDebugHelpers.h "
-#include "Lamp.h"
+#include "LampSwitch.h"
 
 //////////////////////////////////////////////////////////////////////////
 // ATestProjectCharacter
@@ -167,9 +167,9 @@ void ATestProjectCharacter::OnToggleLight()
 // overlap on begin function
 void ATestProjectCharacter::OnOverlapBegin(class UPrimitiveComponent* OverlappedComp, class AActor* OtherActor, class UPrimitiveComponent* OtherComp, int32 OtherBodyIndex, bool bFromSweep, const FHitResult& SweepResult)
 {
-	if (OtherActor && (OtherActor != this) && OtherComp && OtherActor->GetClass()->IsChildOf(ALamp::StaticClass()))
+	if (OtherActor && (OtherActor != this) && OtherComp && OtherActor->GetClass()->IsChildOf(ALampSwitch::StaticClass()))
 	{
-		CurrentLightSwitch = Cast<ALamp>(OtherActor);
+		CurrentLightSwitch = Cast<ALampSwitch>(OtherActor);
 	}
 }
 

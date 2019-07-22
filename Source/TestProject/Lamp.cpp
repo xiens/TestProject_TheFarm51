@@ -3,7 +3,7 @@
 #include "Lamp.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SpotLightComponent.h"
-#include "Components/SphereComponent.h"
+#include "LampSwitch.h"
 #include "CoreUObject/Public/UObject/ConstructorHelpers.h"
 #include "CoreUObject/Public/UObject/Class.h"
 #include "Engine/Public/DrawDebugHelpers.h "
@@ -16,35 +16,22 @@ ALamp::ALamp()
 	PrimaryActorTick.bCanEverTick = true;
 	bReplicates = true;
 	CollisionMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("Collision Mesh"));
-	SwitchMesh = CreateDefaultSubobject<UStaticMeshComponent>(FName("Switch Mesh"));
 
 	static ConstructorHelpers::FObjectFinder<UStaticMesh> CeilingLampAsset(TEXT("/Game/StarterContent/Props/SM_Lamp_Ceiling.SM_Lamp_Ceiling")); 
 	if (CeilingLampAsset.Succeeded())
 	{
 		CollisionMesh->SetStaticMesh(CeilingLampAsset.Object);
 	}
-	static ConstructorHelpers::FObjectFinder<UStaticMesh> SwitchAsset(TEXT("/Game/StarterContent/Architecture/SM_AssetPlatform.SM_AssetPlatform"));
-	if (SwitchAsset.Succeeded()) {
-		
-		SwitchMesh->SetStaticMesh(SwitchAsset.Object);
-		SwitchMesh->SetWorldScale3D(FVector(0.1f, 0.1f, 0.1f));
-		SwitchMesh->SetupAttachment(RootComponent);
-	}
+
 	RootComponent = CollisionMesh;
 	CollisionMesh->SetNotifyRigidBodyCollision(true);
 
 	SpotLight = CreateDefaultSubobject<USpotLightComponent>(FName("SpotLight"));
 	SpotLight->bVisible = true;
-	SpotLight->Intensity = LightIntensity;
 	SpotLight->SetupAttachment(RootComponent);
 	SpotLight->SetRelativeRotation(FRotator(-90.0f, 0.0f, 0.0f));
 	SpotLight->SetRelativeLocation(FVector(0.0f, 0.0f, -125.0f));
 
-	LightTrigger = CreateDefaultSubobject<USphereComponent>(TEXT("Light Sphere Component"));
-	LightTrigger->InitSphereRadius(100.0f);
-	LightTrigger->SetCollisionProfileName(TEXT("Trigger"));
-	LightTrigger->SetCollisionResponseToChannel(ECC_Pawn, ECR_Ignore);
-	LightTrigger->SetupAttachment(RootComponent);
 }
 
 // Called when the game starts or when spawned
@@ -52,8 +39,8 @@ void ALamp::BeginPlay()
 {
 	Super::BeginPlay();
 
-	SwitchMesh->SetRelativeLocation(SwitchLocation);
-	LightTrigger->SetRelativeLocation(SwitchLocation);
+	if (LightChangeRate == 0) time = 0;//don't change the color
+	SpotLight->Intensity = LightIntensity;
 }
 
 // Called every frame
@@ -61,7 +48,18 @@ void ALamp::Tick(float DeltaTime)
 {
 	Super::Tick(DeltaTime);
 
+	MoveInCircle(DeltaTime);
 	ChangeColorOverTime(DeltaTime);
+}
+
+void ALamp::MoveInCircle(float DeltaTime)
+{
+	float XLoc = S.X + r * FMath::Sin(angle);
+	float YLoc = S.Y + r * FMath::Cos(angle);
+	angle += Speed * DeltaTime;
+	if (angle == 360) angle = 0;
+
+	SetActorLocation(FVector(XLoc, YLoc, GetActorLocation().Z));
 }
 
 void ALamp::ChangeColorOverTime(float DeltaTime)

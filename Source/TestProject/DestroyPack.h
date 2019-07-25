@@ -17,7 +17,6 @@ class UBoxComponent;
 /**
 * Destroyable object with health
 * Uses mesh created in the MeshGenerator class
-* Each TestProjectCharacter's hit hides some triangles of this object's mesh
 */
 UCLASS()
 class TESTPROJECT_API ADestroyPack : public AActor
@@ -56,27 +55,47 @@ private:
 	float HideSectionAmount = 0.5f; //Amount of damage to hide another mesh section
 
 	float MaxHealth = 100.0f, CurrentHealth = 100.0f; //Object's health in %
-	float temp = 0; //Temporary variable used in DestroyQuadSections()
+	float temp = 0; //Temporary variable used in HideQuadSections()
 
 	UFUNCTION()
 	void OnHit(UPrimitiveComponent * HitComponent, AActor * OtherActor, UPrimitiveComponent * OtherComponent, FVector NormalImpulse, const FHitResult & Hit);
 
-	//Called after actor is placed in the scene
 	void PostActorCreated();
 
-	//Called after loading the game
 	void PostLoad();
 
-	//Destroys some random sections of quad, called when player hits this object
-	void DestroyQuadSections();
+	bool DoOnce = true; //Used to set the timer only once when collision with this object occurs
+	int SectionCnt = 0; //Counter for sections
+	FVector MoveBy = FVector(0.1f, 0.3f, 0); //Vector to translate the mesh section
 
-	void DiscoFloor();
+	FTimerHandle CallMoveMeshSectionHandle, CallDestroyQuadSectionsHandle;
 
-	void CreateSimpleQuad();
+	/**
+	* Hides some random sections of quad
+	* when CurrentHealth gets to 0, destroys the quad
+	*/
+	UFUNCTION()
+	void HideQuadSections();
+
+	/**
+	* Moves the section of the mesh by @MoveBy vector
+	* @MoveBy - FVector to translate the 3 vertices of triangle
+	* @SectionIndex - index of mesh's section
+	*/
+	UFUNCTION()
+	void MoveMeshSection(int32 SectionIndex, FVector MoveBy);
+
+	/**
+	* Sets the timers to move sections and stops them when 
+	* all timers for moving sections were fired off
+	* then starts the timer for HideQuadSections()
+	*/
+	UFUNCTION()
+	void HandleMoveSectionTimer();
+
+	void HideRandomTriangles();
 
 	UFUNCTION(Server, Reliable, WithValidation)
 	void Server_DestroyQuadSections();
-
-
 
 };

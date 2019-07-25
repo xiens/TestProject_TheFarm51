@@ -3,10 +3,7 @@
 #include "Lamp.h"
 #include "Components/StaticMeshComponent.h"
 #include "Components/SpotLightComponent.h"
-#include "LampSwitch.h"
 #include "CoreUObject/Public/UObject/ConstructorHelpers.h"
-#include "CoreUObject/Public/UObject/Class.h"
-#include "Engine/Public/DrawDebugHelpers.h "
 #include "UnrealNetwork.h"
 
 // Sets default values
@@ -41,6 +38,8 @@ void ALamp::BeginPlay()
 
 	if (LightChangeRate == 0) time = 0;//don't change the color
 	SpotLight->Intensity = LightIntensity;
+	CurrentColor = StartingColor;
+	NextColor = StartingColor;
 }
 
 // Called every frame
